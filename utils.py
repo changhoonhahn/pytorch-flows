@@ -49,16 +49,35 @@ def save_images(epoch, best_model, name):
     torchvision.utils.save_image(imgs, '/tigress/chhahn/arcoiris/img_%s_%i.png' % (name, epoch), nrow=10)
 
 
-def save_images_nocentralpix(epoch, best_model):
+def save_images_p_XandY(epoch, best_model):
     best_model.eval()
     with torch.no_grad():
-        imgs = best_model.sample(batch_size, noise=fixed_noise, cond_inputs=np.zeros(16)).detach().cpu()
-
+        imgs = best_model.sample(batch_size, noise=fixed_noise).detach().cpu()
         imgs = torch.sigmoid(imgs.view(batch_size, 1, 28, 28))
     
-    try:
-        os.makedirs('images')
-    except OSError:
-        pass
+    torchvision.utils.save_image(imgs, '/tigress/chhahn/arcoiris/img_p_XandY_%i.png' % epoch, nrow=10)
 
-    torchvision.utils.save_image(imgs, '/tigress/chhahn/arcoiris/img_nocentralpixl_%i.png' % epoch, nrow=10)
+
+def save_images_p_Y(epoch, best_model):
+    best_model.eval()
+    with torch.no_grad():
+        imgs = best_model.sample(batch_size, noise=fixed_noise).detach().cpu()
+        imgs = torch.sigmoid(imgs.view(batch_size, 1, 4, 4))
+    
+    torchvision.utils.save_image(imgs, '/tigress/chhahn/arcoiris/img_p_Y_%i.png' % epoch, nrow=10)
+
+
+central_pixel = np.zeros((28,28)).astype(bool)
+central_pixel[13:17,13:17] = True 
+central_pixel = central_pixel.flatten() 
+blank = torch.zeros(16)
+def save_images_p_XgivenY(epoch, best_model):
+    best_model.eval()
+    with torch.no_grad():
+        imgs = best_model.sample(batch_size, noise=fixed_noise, cond_inputs=blank).detach().cpu()
+        full = torch.from_numpy(np.zeros((batch_size, 28*28))).float()
+        full[:,~central_pixel] = imgs
+
+        full = torch.sigmoid(full.view(batch_size, 1, 28, 28))
+    
+    torchvision.utils.save_image(full, '/tigress/chhahn/arcoiris/img_p_XgivenY_%i.png' % epoch, nrow=10)

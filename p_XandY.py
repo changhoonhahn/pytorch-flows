@@ -185,7 +185,7 @@ for epoch in range(epochs):
         'Best validation at epoch {}: Average Log Likelihood in nats: {:.4f}'.
         format(best_validation_epoch, -best_validation_loss))
 
-    utils.save_images(epoch, model, 'p_XandY')
+    utils.save_images_p_XandY(epoch, model)
 
     # save training checkpoint
     torch.save({'epoch': epoch,

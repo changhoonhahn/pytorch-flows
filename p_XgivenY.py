@@ -47,19 +47,19 @@ central_pixel = np.zeros((28,28)).astype(bool)
 central_pixel[13:17,13:17] = True 
 central_pixel = central_pixel.flatten() 
 
-train_tensor    = torch.from_numpy(dataset.trn.x[~central_pixel])
-train_cond      = torch.from_numpy(dataset.trn.x[central_pixel])
-train_dataset = torch.utils.data.TensorDataset(train_tensor, train_cond)
+train_tensor    = torch.from_numpy(dataset.trn.x[:,~central_pixel])
+train_cond      = torch.from_numpy(dataset.trn.x[:,central_pixel])
+train_dataset   = torch.utils.data.TensorDataset(train_tensor, train_cond)
 
-valid_tensor = torch.from_numpy(dataset.val.x[~central_pixel])
-valid_cond   = torch.from_numpy(dataset.val.x[central_pixel])
-valid_dataset = torch.utils.data.TensorDataset(valid_tensor, valid_cond)
+valid_tensor    = torch.from_numpy(dataset.val.x[:,~central_pixel])
+valid_cond      = torch.from_numpy(dataset.val.x[:,central_pixel])
+valid_dataset   = torch.utils.data.TensorDataset(valid_tensor, valid_cond)
 
-test_tensor = torch.from_numpy(dataset.tst.x[~central_pixel])
-test_cond = torch.from_numpy(dataset.tst.x[central_pixel])
-test_dataset = torch.utils.data.TensorDataset(test_tensor, test_cond)
+test_tensor     = torch.from_numpy(dataset.tst.x[:,~central_pixel])
+test_cond       = torch.from_numpy(dataset.tst.x[:,central_pixel])
+test_dataset    = torch.utils.data.TensorDataset(test_tensor, test_cond)
 
-num_cond_inputs = np.sum(central_pixels)
+num_cond_inputs = np.sum(central_pixel)
 
 
 train_loader = torch.utils.data.DataLoader(
@@ -79,7 +79,7 @@ test_loader = torch.utils.data.DataLoader(
     drop_last=False,
     **kwargs)
 
-num_inputs = dataset.n_dims
+num_inputs = np.sum(~central_pixel) 
 
 modules = []
 
@@ -198,7 +198,7 @@ for epoch in range(epochs):
         'Best validation at epoch {}: Average Log Likelihood in nats: {:.4f}'.
         format(best_validation_epoch, -best_validation_loss))
 
-    utils.save_images_nocentralpix(epoch, model)
+    utils.save_images_p_XgivenY(epoch, model)
 
     # save training checkpoint
     torch.save({'epoch': epoch,

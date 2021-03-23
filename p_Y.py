@@ -46,13 +46,13 @@ central_pixel = np.zeros((28,28)).astype(bool)
 central_pixel[13:17,13:17] = True 
 central_pixel = central_pixel.flatten() 
 
-train_tensor = torch.from_numpy(dataset.trn.x[central_pixel])
+train_tensor = torch.from_numpy(dataset.trn.x[:,central_pixel])
 train_dataset = torch.utils.data.TensorDataset(train_tensor)
 
-valid_tensor = torch.from_numpy(dataset.val.x[central_pixel])
+valid_tensor = torch.from_numpy(dataset.val.x[:,central_pixel])
 valid_dataset = torch.utils.data.TensorDataset(valid_tensor)
 
-test_tensor = torch.from_numpy(dataset.tst.x[central_pixel])
+test_tensor = torch.from_numpy(dataset.tst.x[:,central_pixel])
 test_dataset = torch.utils.data.TensorDataset(test_tensor)
 num_cond_inputs = None
     
@@ -190,7 +190,7 @@ for epoch in range(epochs):
         'Best validation at epoch {}: Average Log Likelihood in nats: {:.4f}'.
         format(best_validation_epoch, -best_validation_loss))
 
-    utils.save_images(epoch, model, 'p_Y')
+    utils.save_images_p_Y(epoch, model)
 
 
     # save training checkpoint
