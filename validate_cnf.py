@@ -18,7 +18,8 @@ import flows as fnn
 import utils
 
 
-dat_dir = "/Users/chahah/data/arcoiris/"
+#dat_dir = "/Users/chahah/data/arcoiris/"
+dat_dir = "/tigress/chhahn/arcoiris/"
 #############################################################################
 batch_size      = 100
 test_batch_size = 1000
@@ -133,7 +134,7 @@ p_Y_model.load_state_dict(state)
     torchvision.utils.save_image(full, os.path.join(dat_dir, 'img_p_XgivenY_validate.png'), nrow=10)
 '''
     
-n_val = 1000
+n_val = 100000
 noise_y = torch.Tensor(n_val, np.sum(central_pixel)).normal_()
 noise_x = torch.Tensor(n_val, np.sum(~central_pixel)).normal_()
 
@@ -154,24 +155,20 @@ torchvision.utils.save_image(full[:100,:,:,:], os.path.join(dat_dir, 'img_p_Xpan
 
 p_XandY_model.eval() 
 with torch.no_grad(): 
+    XpYp = XpYp.to(device)
     # transform (X', Y') with the (X,Y) normalizing flow 
     Zp = p_XandY_model.forward(XpYp, None, mode='direct')[0].detach().cpu() 
     print(Zp)
     full = torch.sigmoid(Zp.view(n_val, 1, 28, 28))
 torchvision.utils.save_image(full[:100,:,:,:], os.path.join(dat_dir, 'img_p_Zp_validate.png'), nrow=10)
 
+# save to file 
 np.save(os.path.join(dat_dir, 'Zp.npy'), np.array(Zp))
 
 import corner as DFM 
+import matplotlib as mpl
+mpl.use('Agg')
 import matplotlib.pyplot as plt 
 
-fig = plt.figure(figsize=(5,5))
-sub = fig.add_subplot(111)
-sub.scatter(np.array(Zp)[:,0], np.array(Zp)[:,1], c='C0', s=1)
-fig.savefig(os.path.join(dat_dir, 'Zp.scatter.png'), bbox_inches='tight') 
-
-fig = DFM.corner(np.array(Zp))
+fig = DFM.corner(np.array(Zp)[:,:10])
 fig.savefig(os.path.join(dat_dir, 'Zp.corner.png'), bbox_inches='tight') 
-
-
-
