@@ -4,6 +4,7 @@ script to validate the conditional normalizing flow
 
 
 '''
+import copy
 import os 
 import numpy as np
 import torch
@@ -11,12 +12,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 import torch.utils.data
-import torchvision
+from tqdm import tqdm
+from tensorboardX import SummaryWriter
 
-import datasets
 import flows as fnn
-import utils
-
 
 #############################################################################
 batch_size      = 100
@@ -45,9 +44,9 @@ else:
 # read in data 
 dat_dir = "/tigress/chhahn/arcoiris/provabgs_cnf/"
 
-thetas = np.load(os.path.join(dat_dir, 'train.thetas.npy')) # SPS parameters
-xphoto = np.load(os.path.join(dat_dir, 'train.xphoto.npy')) # FM u,g,r,i,z photometry
-sigmax = np.load(os.path.join(dat_dir, 'train.sigmax.npy')) # photometric noise 
+thetas = np.load(os.path.join(dat_dir, 'train.thetas.npy')).astype(np.float32) # SPS parameters
+xphoto = np.load(os.path.join(dat_dir, 'train.xphoto.npy')).astype(np.float32) # FM u,g,r,i,z photometry
+sigmax = np.load(os.path.join(dat_dir, 'train.sigmax.npy')).astype(np.float32) # photometric noise 
 
 # posterior will be conditioned on photometry and photometric noise
 condit = np.concatenate([xphoto, sigmax], axis=1) 

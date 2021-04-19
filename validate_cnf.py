@@ -133,7 +133,7 @@ p_Y_model.load_state_dict(state)
 
     torchvision.utils.save_image(full, os.path.join(dat_dir, 'img_p_XgivenY_validate.png'), nrow=10)
 '''
-    
+'''
 n_val = 100000
 noise_y = torch.Tensor(n_val, np.sum(central_pixel)).normal_()
 noise_x = torch.Tensor(n_val, np.sum(~central_pixel)).normal_()
@@ -172,3 +172,31 @@ import matplotlib.pyplot as plt
 
 fig = DFM.corner(np.array(Zp)[:,:10])
 fig.savefig(os.path.join(dat_dir, 'Zp.corner.png'), bbox_inches='tight') 
+'''
+
+for i in range(100): 
+    n_val = 10000
+    noise_y = torch.Tensor(n_val, np.sum(central_pixel)).normal_()
+    noise_x = torch.Tensor(n_val, np.sum(~central_pixel)).normal_()
+
+    p_Y_model.eval() 
+    p_XgivenY_model.eval() 
+    with torch.no_grad():
+        # sample Y' ~ p_NF(Y) 
+        Yp = p_Y_model.sample(n_val, noise=noise_y).detach().cpu()
+
+        # sample X' ~ p_NF(X|Y')
+        Xp = p_XgivenY_model.sample(n_val, noise=noise_x, cond_inputs=Yp).detach().cpu()
+
+        XpYp = torch.from_numpy(np.zeros((n_val, 28*28))).float()
+        XpYp[:,~central_pixel] = Xp
+        XpYp[:,central_pixel] = Yp
+
+    p_XandY_model.eval() 
+    with torch.no_grad(): 
+        XpYp = XpYp.to(device)
+        # transform (X', Y') with the (X,Y) normalizing flow 
+        Zp = p_XandY_model.forward(XpYp, None, mode='direct')[0].detach().cpu() 
+
+    # save to file 
+    np.save(os.path.join(dat_dir, 'Zp.%i.npy' % i), np.array(Zp))
